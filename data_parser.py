@@ -1,5 +1,6 @@
-import re
+import re, os
 import numpy as np
+import pandas as pd
 
 
 class Data:
@@ -27,6 +28,21 @@ FILES_PATHS = {
     'data/mi.txt': 3,
     'data/mi_np.txt': 4
 }
+
+
+def to_dataframe(dataset_list, col_names) -> pd.DataFrame:
+    result = pd.DataFrame(columns=col_names + list({'disease'}))
+    for idx, d in enumerate(dataset_list, start=0):
+        df = pd.DataFrame(d, columns=col_names)
+        disease_filename = list(FILES_PATHS.keys())[list(FILES_PATHS.values()).index(idx)]
+        df['disease'] = os.path.splitext(disease_filename)[0]
+        result = result.append(df)
+    return result
+
+
+def save_dataframe_to_file(df, dir='data', filename='concatenated_source_data_heart_disease.csv'):
+    output_path = os.path.join(dir, filename)
+    df.to_csv(output_path, index=False, header=True)
 
 
 def load_and_transpose_file(path: str) -> np.array:

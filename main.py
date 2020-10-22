@@ -3,10 +3,12 @@ import pandas as pd
 from sklearn.feature_selection import chi2
 from sklearn.neighbors import KNeighborsClassifier
 
-from data_parser import load_features_names, load_all_files, load_data
+from data_parser import load_features_names, load_all_files, load_data, to_dataframe, save_dataframe_to_file
 
 parameters = {'n_neighbors': [1, 5, 10], 'metric': ('euclidean', 'minkowski')}
 classifier = KNeighborsClassifier()
+
+
 
 
 def main():
@@ -15,6 +17,9 @@ def main():
 
     data = load_data(datasets)
     data.print_classes_strength()
+
+    df = to_dataframe(datasets, features_names)
+    save_dataframe_to_file(df)
 
     features = np.concatenate([*datasets])
     classes = np.concatenate(
