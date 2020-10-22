@@ -3,7 +3,8 @@ import pandas as pd
 from sklearn.feature_selection import chi2
 from sklearn.neighbors import KNeighborsClassifier
 
-from data_parser import load_features_names, load_all_files, load_data, to_dataframe, save_dataframe_to_file
+from data_parser import load_features_names, load_all_files, load_data, load_diseases_names
+from data_summary import show_distribution
 
 parameters = {'n_neighbors': [1, 5, 10], 'metric': ('euclidean', 'minkowski')}
 classifier = KNeighborsClassifier()
@@ -12,16 +13,16 @@ classifier = KNeighborsClassifier()
 def main():
     datasets = load_all_files()
     features_names = load_features_names()
+    diseases_names = load_diseases_names()
 
     data = load_data(datasets)
     data.print_classes_strength()
 
-    df = to_dataframe(datasets, features_names)
-    save_dataframe_to_file(df)
+    show_distribution(datasets, features_names)
 
     features = np.concatenate([*datasets])
     classes = np.concatenate(
-        [np.full(dataset.shape[0], index) for (index, dataset) in enumerate(datasets)])  # nazwa pliku zamiast index
+        [np.full(dataset.shape[0], diseases_names[index]) for (index, dataset) in enumerate(datasets)])
 
     scores, p_values = chi2(features, classes)
 

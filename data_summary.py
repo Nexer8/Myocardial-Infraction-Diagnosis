@@ -3,21 +3,24 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df = pd.read_csv(os.path.join('data', 'concatenated_source_data_heart_disease.csv'), sep=",")
+from data_parser import append_disease_column
 
-described = df.describe().round(3)
-print(described)
 
-# Check for NA
-print(df.isnull().sum().sum())
+def show_distribution(datasets, features_names):
+    appended_list = append_disease_column(datasets, features_names)
+    # described = df.describe().round(3)
+    # print(described)
 
-# Correlation matrix
-c = df.corr().abs()
+    # Check for NA
+    # print(df.isnull().sum().sum())
 
-s = c.unstack()
-so = s.sort_values(kind="quicksort")
-print(so)
+    # Correlation matrix
+    # correlation_matrix = df.corr().abs()
 
-#df.plot(kind='scatter', x='Age', y='Pain location')
-df.groupby(['disease'])['disease'].agg(['count']).plot.pie(y='count')
-plt.show()
+    # s = correlation_matrix.unstack()
+    # so = s.sort_values(kind="quicksort")
+    # print(so)
+
+    # df.plot(kind='scatter', x='Age', y='Pain location')
+    appended_list.groupby(['disease'])['disease'].agg(['count']).plot.pie(y='count', autopct='%1.1f%%')
+    plt.show()
