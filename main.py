@@ -9,8 +9,6 @@ parameters = {'n_neighbors': [1, 5, 10], 'metric': ('euclidean', 'minkowski')}
 classifier = KNeighborsClassifier()
 
 
-
-
 def main():
     datasets = load_all_files()
     features_names = load_features_names()

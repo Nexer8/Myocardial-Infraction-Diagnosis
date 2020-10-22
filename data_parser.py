@@ -35,7 +35,7 @@ def to_dataframe(dataset_list, col_names) -> pd.DataFrame:
     for idx, d in enumerate(dataset_list, start=0):
         df = pd.DataFrame(d, columns=col_names)
         disease_filename = list(FILES_PATHS.keys())[list(FILES_PATHS.values()).index(idx)]
-        df['disease'] = os.path.splitext(disease_filename)[0]
+        df['disease'] = disease_filename.split('/')[1].split('.')[0]
         result = result.append(df)
     return result
 
