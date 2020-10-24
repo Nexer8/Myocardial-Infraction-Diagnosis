@@ -26,22 +26,22 @@ def main():
 
     scores, p_values = chi2(features, classes)
 
-    features_with_score_values = pd.concat(
+    features_with_values = pd.concat(
         [pd.DataFrame(features_names, columns=['Features']), pd.DataFrame(scores, columns=['Scores']),
          pd.DataFrame(p_values, columns=['P_values'])], axis=1)
-    features_with_score_values.index += 1  # To match with feature's number
+    features_with_values.index += 1  # To match with feature's number
 
-    print(features_with_score_values.sort_values('Scores', ascending=False).round(3))
+    print(features_with_values.sort_values('Scores', ascending=False).round(3))
 
     print('==============================================================')
 
     alpha = 0.05
-    for index, row in features_with_score_values.iterrows():
+    for index, row in features_with_values.iterrows():
         p_value = row['P_values']
         if p_value > alpha:
-            features_with_score_values.drop(index, inplace=True)
+            features_with_values.drop(index, inplace=True)
 
-    print(features_with_score_values.sort_values('Scores', ascending=False).round(3))
+    print(features_with_values.sort_values('Scores', ascending=False).round(3))
 
 
 if __name__ == '__main__':
