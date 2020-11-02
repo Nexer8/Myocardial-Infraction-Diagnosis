@@ -1,6 +1,7 @@
 # Project exclude paths
 /venv/
 .idea
+.ipynb_checkpoints
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

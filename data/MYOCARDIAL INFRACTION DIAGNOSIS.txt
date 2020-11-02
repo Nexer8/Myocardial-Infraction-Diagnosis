@@ -113,9 +113,9 @@ DIAGNOSES:
 
 1. 	Pain of non-heart origin - inne
 2. 	Angina prectoris
-3. 	Angina prectoris - Prinzmetal variant – ang.prec.2
+3. 	Angina prectoris - Prinzmetal variant - ang.prec.2
 4. 	Myocardial infraction (transmural) - mi
-5. 	Myocardial infraction (subendocardial) – mi-np
+5. 	Myocardial infraction (subendocardial) - mi-np
 
 
 
