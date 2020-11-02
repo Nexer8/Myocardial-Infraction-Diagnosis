@@ -32,9 +32,9 @@ def main():
          pd.DataFrame(p_values, columns=['P_values'])], axis=1)
 
     # print(features_with_values.sort_values('Scores', ascending=False).round(3))
-
+    ordered_features = features.copy()
     for idx, feature_idx in enumerate(features_with_values.sort_values('Scores', ascending=False).index):
-        features[:, [feature_idx, idx]] = features[:, [idx, feature_idx]]
+        ordered_features[:, idx:idx + 1] = features[:, feature_idx: feature_idx + 1]
 
     # print('==============================================================')
 
@@ -55,10 +55,10 @@ def main():
     best_score = 0
     clf = GridSearchCV(estimator=KNeighborsClassifier(), param_grid=param_grid, cv=2, n_jobs=-1)
 
-    for feature in range(1, features.shape[1] + 1):  # could be up to 7 features (range until 8)
+    for feature in range(1, ordered_features.shape[1] + 1):  # could be up to 7 features (range until 8)
         current_iteration_scores = []
         for idx in range(5):
-            clf.fit(features[:, 0:feature], classes)
+            clf.fit(ordered_features[:, 0:feature], classes)
             current_best_score = clf.best_score_
             current_iteration_scores.append(current_best_score)
 
@@ -77,8 +77,8 @@ def main():
     print(f'Best parameters: metric - {best_parameters["metric"]}, n_neighbors - {best_parameters["n_neighbors"]}, '
           f'number of features - {best_parameters["features"]}')
 
-    clf.fit(features[:, 0:best_parameters['features']], classes)
-    y_pred = clf.best_estimator_.predict(features[:, 0:best_parameters['features']])
+    clf.fit(ordered_features[:, 0:best_parameters['features']], classes)
+    y_pred = clf.best_estimator_.predict(ordered_features[:, 0:best_parameters['features']])
     print(confusion_matrix(classes, y_pred=y_pred))
 
 
