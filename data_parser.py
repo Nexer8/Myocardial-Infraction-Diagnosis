@@ -21,6 +21,14 @@ class Data:
         print(f'Myocardial infraction (transmural): {len(self.myocardial_infraction_transmural)}'.rjust(45))
         print(f'Myocardial infraction (subendocardial): {len(self.myocardial_infraction_subendocardial)}'.rjust(45))
 
+    def print_combined_strength(self):
+        print(
+            f"""Total strength: {len(self.pain_of_non_heart_origin)
+                                 + len(self.angina_prectoris)
+                                 + len(self.angina_prectoris_prinzmetal_variant)
+                                 + len(self.myocardial_infraction_transmural)
+                                 + len(self.myocardial_infraction_subendocardial)}""".rjust(45))
+
 
 FILES_PATHS = {
     'data/inne.txt': 0,
