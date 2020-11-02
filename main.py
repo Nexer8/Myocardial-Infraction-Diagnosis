@@ -46,19 +46,17 @@ def main():
 
     # print(features_with_values.sort_values('Scores', ascending=False).round(3))
 
-    # X_train, X_test, y_train, y_test = train_test_split(features, classes, test_size=0.25, random_state=0) #
-    # TODO: is it necessary to split for training and testing sets?
+    X_train, X_test, y_train, y_test = train_test_split(ordered_features, classes, test_size=0.25, random_state=0)
 
     param_grid = {'n_neighbors': [1, 5, 10], 'metric': ('euclidean', 'minkowski')}
-
     best_parameters = dict()
     best_score = 0
     clf = GridSearchCV(estimator=KNeighborsClassifier(), param_grid=param_grid, cv=2, n_jobs=-1)
 
-    for feature in range(1, ordered_features.shape[1] + 1):  # could be up to 7 features (range until 8)
+    for feature in range(1, X_train.shape[1] + 1):  # could be up to 7 features (range until 8)
         current_iteration_scores = []
         for idx in range(5):
-            clf.fit(ordered_features[:, 0:feature], classes)
+            clf.fit(X_train[:, 0:feature], y_train)
             current_best_score = clf.best_score_
             current_iteration_scores.append(current_best_score)
 
@@ -77,9 +75,12 @@ def main():
     print(f'Best parameters: metric - {best_parameters["metric"]}, n_neighbors - {best_parameters["n_neighbors"]}, '
           f'number of features - {best_parameters["features"]}')
 
-    clf.fit(ordered_features[:, 0:best_parameters['features']], classes)
-    y_pred = clf.best_estimator_.predict(ordered_features[:, 0:best_parameters['features']])
-    print(confusion_matrix(classes, y_pred=y_pred))
+    # TODO: is it necessary to split for training and testing sets?
+
+    clf.fit(X_train[:, 0:best_parameters['features']], y_train)
+    y_pred = clf.best_estimator_.predict(X_test[:, 0:best_parameters['features']])
+    print(confusion_matrix(y_test, y_pred=y_pred))
+    print(classification_report(y_test, y_pred))
 
 
 if __name__ == '__main__':
