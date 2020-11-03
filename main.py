@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.feature_selection import chi2
 from sklearn.metrics import classification_report, confusion_matrix
 import scipy.stats as stats
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split, GridSearchCV, RepeatedStratifiedKFold
 from sklearn.neighbors import KNeighborsClassifier
 
 from data_parser import load_features_names, load_all_files, load_data, load_diseases_names
@@ -46,41 +46,48 @@ def main():
 
     # print(features_with_values.sort_values('Scores', ascending=False).round(3))
 
-    X_train, X_test, y_train, y_test = train_test_split(ordered_features, classes, test_size=0.25, random_state=0)
-
-    param_grid = {'n_neighbors': [1, 5, 10], 'metric': ('euclidean', 'minkowski')}
     best_parameters = dict()
     best_score = 0
-    clf = GridSearchCV(estimator=KNeighborsClassifier(), param_grid=param_grid, cv=2, n_jobs=-1)
+    rskf = RepeatedStratifiedKFold(n_repeats=5, n_splits=2)
 
-    for feature in range(1, X_train.shape[1] + 1):  # could be up to 7 features (range until 8)
+    n_neighbors_variants = [1, 5, 10]
+    metric_variants = ['euclidean', 'minkowski']
+    best_score_confusion_matrix = None
+    best_score_classification_report = None
+
+    for n_features in range(1, ordered_features.shape[1] + 1):  # could be up to 7 features (range until 8)
         current_iteration_scores = []
-        for idx in range(5):
-            clf.fit(X_train[:, 0:feature], y_train)
-            current_best_score = clf.best_score_
-            current_iteration_scores.append(current_best_score)
 
-            if current_best_score > best_score:
-                best_score = current_best_score
-                best_parameters = clf.best_params_
-                best_parameters['features'] = feature
+        for n_neighbors in n_neighbors_variants:
+            for metric in metric_variants:
+                knn = KNeighborsClassifier(n_neighbors=n_neighbors, metric=metric)
 
-        print(f'Mean score for {feature} features: {np.array(current_iteration_scores).mean().round(3)}')
+                for train, test in rskf.split(ordered_features[:, 0:n_features], classes):
+                    knn.fit(ordered_features[:, 0:n_features][train], classes[train])
 
-        # if feature > 1:
+                    current_best_score = knn.score(ordered_features[:, 0:n_features][test], classes[test])
+                    current_iteration_scores.append(current_best_score)
+
+                    if current_best_score > best_score:
+                        best_score = current_best_score
+                        best_parameters = {'n_neighbors': n_neighbors, 'metric': metric, 'n_features': n_features}
+
+                        y_pred = knn.predict(ordered_features[:, 0:n_features][test])
+                        best_score_confusion_matrix = confusion_matrix(classes[test], y_pred=y_pred)
+                        best_score_classification_report = classification_report(classes[test], y_pred=y_pred)
+
+        print(f'Mean score for n_features={n_features}: {np.array(current_iteration_scores).mean().round(3)}')
+
+        # if n_features > 1:
         #     stats.ttest_rel(current_iteration_scores[feature - 1], current_iteration_scores[feature])
         #     TODO: add the t-student test
 
     print(f'\nBest score: {best_score}')
     print(f'Best parameters: metric - {best_parameters["metric"]}, n_neighbors - {best_parameters["n_neighbors"]}, '
-          f'number of features - {best_parameters["features"]}')
+          f'number of features - {best_parameters["n_features"]}')
 
-    # TODO: is it necessary to split for training and testing sets?
-
-    clf.fit(X_train[:, 0:best_parameters['features']], y_train)
-    y_pred = clf.best_estimator_.predict(X_test[:, 0:best_parameters['features']])
-    print(confusion_matrix(y_test, y_pred=y_pred))
-    print(classification_report(y_test, y_pred))
+    print(best_score_confusion_matrix)
+    print(best_score_classification_report)
 
 
 if __name__ == '__main__':
