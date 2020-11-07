@@ -10,7 +10,7 @@ from sklearn.neighbors import KNeighborsClassifier
 
 from data_parser import load_features_names, load_all_files, load_data, load_diseases_names
 from data_summary import show_distribution
-#TODO1. Spróbuj też ogarnąć po co powtarzamy 5 razy cross validation 2. (Opcjonalne) ogarnij, czy da się to robić na DataFrame'ach (ordered_features byłyby wtedy zbędne)3. Dodanie testu parowego t-studenta (co, jak i po co porównujemy?)
+
 
 def main():
     datasets = load_all_files()
@@ -57,14 +57,14 @@ def main():
     best_score_confusion_matrix = None
     best_score_classification_report = None
 
-    t_test_df_columns = ['n_features', 'n_neighbors', 'metric', 'scores']
-    t_test_df = pd.DataFrame(columns=t_test_df_columns)
+    df_columns = ['n_features', 'n_neighbors', 'metric', 'scores', 'mean_accuracy']
+    results_df = pd.DataFrame(columns=df_columns)
 
-    #number_of_features = ordered_features.shape[1] + 1
+    # number_of_features = ordered_features.shape[1] + 1
     number_of_features = 4
 
+    print('Training models. Please wait...')
     for n_features in range(1, number_of_features):  # could be up to 7 features (range until 8)
-       # print(f"BEST for {clf.best_score_}")
         for n_neighbors in n_neighbors_variants:
             for metric in metric_variants:
                 knn = KNeighborsClassifier(n_neighbors=n_neighbors, metric=metric)
@@ -82,48 +82,99 @@ def main():
                         y_pred = knn.predict(ordered_features[:, 0:n_features][test])
                         best_score_confusion_matrix = confusion_matrix(classes[test], y_pred=y_pred)
                         best_score_classification_report = classification_report(classes[test], y_pred=y_pred)
-                t_test_df.loc[len(t_test_df)] = [n_features, n_neighbors, metric, current_iteration_scores]
-                print(f'Mean score for n_neighbors={n_neighbors},metric={metric},n_features={n_features}: {np.array(current_iteration_scores).mean().round(3)}')
+                results_df.loc[len(results_df)] = [n_features, n_neighbors, metric, current_iteration_scores,
+                                                 np.array(current_iteration_scores).mean().round(3)]
+                #print(
+                #    f'Mean score for n_neighbors={n_neighbors},metric={metric},n_features={n_features}: {np.array(current_iteration_scores).mean().round(3)}')
 
-        # if n_features > 1:
-        #     stats.ttest_rel(current_iteration_scores[feature - 1], current_iteration_scores[feature])
-        #     TODO: add the t-student test
+    results_df = results_df.sort_values('mean_accuracy')
+    print('Best mean models scoreboard:')
+    for i, row in results_df.iterrows():
+        print(
+            f'Mean score for n_neighbors={row["n_neighbors"]},metric={row["metric"]},n_features={row["n_features"]}: {row["mean_accuracy"]}')
 
-    print(t_test_df)
+    #print("T_TEST_DF length: " + str(len(results_df)))
     print(f'\nBest score: {best_score}')
     print(f'Best parameters: metric - {best_parameters["metric"]}, n_neighbors - {best_parameters["n_neighbors"]}, '
           f'number of features - {best_parameters["n_features"]}')
 
+    # Compare every model by pair
+    # compare_every_model_paired(t_test_df)
+
+    # Compare two best models (indexed from 0 - best model)
+    #compare_two_best_models(0, 5, t_test_df)
+
+    # Find the first statistically significant different model pair in terms of mean accuracy (t-test)
+    find_best_statistically_significant_model(results_df)
+
+    print(best_score_confusion_matrix)
+    print(best_score_classification_report)
+
+
+def compare_two_best_models(model_idx1, model_idx2, df):
     alfa = 0.05
-    statistical_significant_pairs=0
-    statistical_insignificant_pairs=0
-    for i, row1 in t_test_df.iterrows():
-        for j, row2 in t_test_df.iterrows():
+    df = df.sort_values('mean_accuracy', ascending=False)
+    row1 = df.iloc[model_idx1]
+    row2 = df.iloc[model_idx2]
+    t, pvalue = paired_5x2_ttest(row1, row2)
+    print(
+        f'Comparing [k={row1["n_neighbors"]}, m={row1["metric"]}, f={row1["n_features"]}, accuracy={row1["mean_accuracy"]}] '
+        f'with [k={row2["n_neighbors"]}, m={row2["metric"]}, f={row2["n_features"]}, accuracy={row2["mean_accuracy"]}]')
+    print(f'\tt-statistic: {t}, p-value: {pvalue}, alfa: {alfa}')
+
+    if pvalue < alfa:
+        print('\tIt is statistically significant! Good!')
+    else:
+        print('\tIt is NOT statistically significant! BAD!')
+
+
+def find_best_statistically_significant_model(df):
+    alfa = 0.05
+    df = df.sort_values('mean_accuracy', ascending=False)
+    for i, row1 in df.iterrows():
+        for j, row2 in df.iterrows():
+            if i != j and i < j:
+                t, pvalue = paired_5x2_ttest(row1, row2)
+                if pvalue < alfa:
+                    print(
+                        f'Comparing [k={row1["n_neighbors"]}, m={row1["metric"]}, f={row1["n_features"]}, accuracy={row1["mean_accuracy"]}] '
+                        f'with [k={row2["n_neighbors"]}, m={row2["metric"]}, f={row2["n_features"]}, accuracy={row2["mean_accuracy"]}]')
+                    print(f'\tt-statistic: {t}, p-value: {pvalue}, alfa: {alfa}')
+                    return
+
+
+def compare_every_model_paired(df):
+    alfa = 0.05
+    statistical_significant_pairs = 0
+    statistical_insignificant_pairs = 0
+    for i, row1 in df.iterrows():
+        for j, row2 in df.iterrows():
             if i != j and i < j:
                 t, pvalue = paired_5x2_ttest(row1, row2)
                 if pvalue < alfa:
                     statistical_significant_pairs = statistical_significant_pairs + 1
-                    print(f'Comparing [k={row1["n_neighbors"]}, m={row1["metric"]}, f={row1["n_features"]}] with [k={row2["n_neighbors"]}, m={row2["metric"]}, f={row2["n_features"]}]')
+                    print(
+                        f'Comparing [k={row1["n_neighbors"]}, m={row1["metric"]}, f={row1["n_features"]}] with [k={row2["n_neighbors"]}, m={row2["metric"]}, f={row2["n_features"]}]')
                     print(f'\tt-statistic: {t}, p-value: {pvalue}, alfa: {alfa} -> {pvalue} (p) < {alfa} (a)')
                 else:
                     statistical_insignificant_pairs = statistical_insignificant_pairs + 1
 
-    print(f'Statistical significant pairs = {statistical_significant_pairs}, statistical insignificant pairs = {statistical_insignificant_pairs}')
-    print(best_score_confusion_matrix)
-    print(best_score_classification_report)
+    print(
+        f'Statistical significant pairs = {statistical_significant_pairs}, statistical insignificant pairs = {statistical_insignificant_pairs}')
+
 
 def paired_5x2_ttest(m1, m2):
     p_1_1 = m1['scores'][0] - m2['scores'][0]
     variances = []
-    for i in range(0, 5*2, 2): # 5 repeats of 2-fold CV
+    for i in range(0, 5 * 2, 2):  # 5 repeats of 2-fold CV
         p1 = m1['scores'][i] - m2['scores'][i]
         p2 = m1['scores'][i + 1] - m2['scores'][i + 1]
 
         variance = statistics.variance([p1, p2])
         variances.append(variance)
 
-    t = p_1_1 / (math.sqrt(1/5.0 * sum(variances)))
-    pvalue = stats.t.sf(np.abs(t), 5)*2.0
+    t = p_1_1 / (math.sqrt(1 / 5.0 * sum(variances)))
+    pvalue = stats.t.sf(np.abs(t), 5) * 2.0
     return t, pvalue
 
 
