@@ -60,8 +60,8 @@ def main():
     df_columns = ['n_features', 'n_neighbors', 'metric', 'scores', 'mean_accuracy']
     results_df = pd.DataFrame(columns=df_columns)
 
-    # number_of_features = ordered_features.shape[1] + 1
-    number_of_features = 4
+    number_of_features = ordered_features.shape[1] + 1
+    #number_of_features = 4
 
     print('Training models. Please wait...')
     for n_features in range(1, number_of_features):  # could be up to 7 features (range until 8)
