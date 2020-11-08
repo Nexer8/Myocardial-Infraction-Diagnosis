@@ -5,11 +5,11 @@ import numpy as np
 from scipy import stats as stats
 
 
-def compare_two_best_models(df):
+def compare_two_models(model_idx1, model_idx2, df):
     alfa = 0.05
     df = df.sort_values('mean_accuracy', ascending=False)
-    row1 = df.iloc[0]
-    row2 = df.iloc[1]
+    row1 = df.iloc[model_idx1]
+    row2 = df.iloc[model_idx2]
     t, p_value = paired_5x2_ttest(row1, row2)
     print(
         f'Comparing [k={row1["n_neighbors"]}, m={row1["metric"]}, f={row1["n_features"]}, accuracy={row1["mean_accuracy"]}] '

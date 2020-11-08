@@ -8,7 +8,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from data_parser import load_features_names, load_all_files, load_data, load_diseases_names
 from data_summary import show_distribution, show_best_score_confusion_matrix
 from model_analysis import find_best_statistically_significant_model, compare_every_model_paired, \
-    compare_two_best_models
+    compare_two_models
 
 
 def main():
@@ -90,8 +90,11 @@ def main():
 
     compare_every_model_paired(results_df)
 
-    compare_two_best_models(results_df)
+    # Compare two best models (indexed from 0 - best model)
+    print('Compare two best models:')
+    compare_two_models(0, 1, results_df)
 
+    print('Best statistically significant model:')
     find_best_statistically_significant_model(results_df)
 
     best_model_params = results_df.sort_values('mean_accuracy', ascending=False).iloc[0]
