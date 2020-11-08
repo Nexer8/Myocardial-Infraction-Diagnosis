@@ -47,7 +47,7 @@ def main():
 
     print(features_with_values.sort_values('Scores', ascending=False).round(3))
 
-    rskf = RepeatedStratifiedKFold(n_repeats=5, n_splits=2)
+    rskf = RepeatedStratifiedKFold(n_repeats=5, n_splits=2, random_state=1)
 
     n_neighbors_variants = [1, 5, 10]
     metric_variants = ['euclidean', 'minkowski']
