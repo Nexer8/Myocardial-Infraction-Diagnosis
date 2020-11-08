@@ -97,7 +97,7 @@ def main():
     knn.fit(X_train, y_train)
     y_pred = knn.predict(X_test)
 
-    show_best_score_confusion_matrix(confusion_matrix(y_test, y_pred=y_pred))
+    show_best_score_confusion_matrix(confusion_matrix(y_test, y_pred=y_pred), diseases_names)
     print(classification_report(y_test, y_pred=y_pred))
 
 
