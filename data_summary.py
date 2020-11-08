@@ -12,7 +12,7 @@ def show_distribution(datasets, features_names):
 
 
 def show_best_score_confusion_matrix(best_score_confusion_matrix: list, diseases_names: list):
-    df_cm = pd.DataFrame(best_score_confusion_matrix, diseases_names, diseases_names)
+    df_cm = pd.DataFrame(best_score_confusion_matrix, sorted(diseases_names), sorted(diseases_names))
 
     sn.set(font_scale=1.4)
     sn.heatmap(df_cm, annot=True, annot_kws={"size": 14}, vmax=150, fmt='g')
