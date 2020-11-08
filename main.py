@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 from sklearn.feature_selection import chi2
-from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.model_selection import RepeatedStratifiedKFold, train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.neighbors import KNeighborsClassifier
 
 from data_parser import load_features_names, load_all_files, load_data, load_diseases_names
@@ -52,7 +52,7 @@ def main():
     n_neighbors_variants = [1, 5, 10]
     metric_variants = ['euclidean', 'minkowski']
 
-    df_columns = ['n_features', 'n_neighbors', 'metric', 'scores', 'mean_accuracy']
+    df_columns = ['n_features', 'n_neighbors', 'metric', 'scores', 'mean_accuracy', 'mean_confusion_matrix']
     results_df = pd.DataFrame(columns=df_columns)
 
     number_of_features = ordered_features.shape[1] + 1  # or set to 8
@@ -63,14 +63,23 @@ def main():
             for metric in metric_variants:
                 knn = KNeighborsClassifier(n_neighbors=n_neighbors, metric=metric)
                 current_iteration_scores = []
+                current_iteration_confusion_matrices = np.zeros(shape=(5, 5))
+                number_of_iterations = 0
 
                 for train, test in rskf.split(ordered_features[:, 0:n_features], classes):
                     knn.fit(ordered_features[:, 0:n_features][train], classes[train])
                     current_score = knn.score(ordered_features[:, 0:n_features][test], classes[test])
                     current_iteration_scores.append(current_score)
 
+                    y_pred = knn.predict(ordered_features[:, 0:n_features][test])
+                    current_confusion_matrix = confusion_matrix(classes[test], y_pred=y_pred)
+                    current_iteration_confusion_matrices += current_confusion_matrix
+
+                    number_of_iterations += 1
+
                 results_df.loc[len(results_df)] = [n_features, n_neighbors, metric, current_iteration_scores,
-                                                   np.array(current_iteration_scores).mean().round(3)]
+                                                   np.array(current_iteration_scores).mean().round(3),
+                                                   (current_iteration_confusion_matrices / number_of_iterations)]
 
     results_df = results_df.sort_values('mean_accuracy')
     print('Best mean models scoreboard:')
@@ -90,15 +99,7 @@ def main():
     print(f'Best parameters: metric - {best_model_params["metric"]}, n_neighbors - {best_model_params["n_neighbors"]}, '
           f'number of features - {best_model_params["n_features"]}')
 
-    X_train, X_test, y_train, y_test = train_test_split(ordered_features[:, 0:best_model_params["n_features"]], classes,
-                                                        test_size=0.5, random_state=1)
-
-    knn = KNeighborsClassifier(n_neighbors=best_model_params["n_neighbors"], metric=best_model_params["metric"])
-    knn.fit(X_train, y_train)
-    y_pred = knn.predict(X_test)
-
-    show_best_score_confusion_matrix(confusion_matrix(y_test, y_pred=y_pred), diseases_names)
-    print(classification_report(y_test, y_pred=y_pred))
+    show_best_score_confusion_matrix(best_model_params['mean_confusion_matrix'], diseases_names)
 
 
 if __name__ == '__main__':
