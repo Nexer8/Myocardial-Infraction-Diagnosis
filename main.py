@@ -50,7 +50,7 @@ def main():
     rskf = RepeatedStratifiedKFold(n_repeats=5, n_splits=2, random_state=1)
 
     n_neighbors_variants = [1, 5, 10]
-    metric_variants = ['manhattan', 'canberra']
+    metric_variants = ['manhattan', 'euclidean']
 
     df_columns = ['n_features', 'n_neighbors', 'metric', 'scores', 'mean_accuracy', 'mean_confusion_matrix']
     results_df = pd.DataFrame(columns=df_columns)
@@ -88,7 +88,7 @@ def main():
             f'Mean score for n_neighbors={row["n_neighbors"]}, metric={row["metric"]}, '
             f'n_features={row["n_features"]}: {row["mean_accuracy"]}')
 
-    # compare_every_model_paired(results_df)
+    compare_every_model_paired(results_df)
 
     # Compare two best models (indexed from 0 - best model)
     print('Compare two best models:')
