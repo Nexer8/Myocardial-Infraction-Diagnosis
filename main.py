@@ -6,7 +6,7 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.neighbors import KNeighborsClassifier
 
 from data_parser import load_features_names, load_all_files, load_data, load_diseases_names
-from data_summary import show_distribution, show_best_score_confusion_matrix
+from data_summary import show_distribution, show_best_score_confusion_matrix, show_summarising_plots
 from model_analysis import find_best_statistically_significant_model, compare_every_model_paired, \
     compare_two_models
 
@@ -50,7 +50,7 @@ def main():
     rskf = RepeatedStratifiedKFold(n_repeats=5, n_splits=2, random_state=1)
 
     n_neighbors_variants = [1, 5, 10]
-    metric_variants = ['manhattan', 'canberra']
+    metric_variants = ['manhattan', 'euclidean']
 
     df_columns = ['n_features', 'n_neighbors', 'metric', 'scores', 'mean_accuracy', 'mean_confusion_matrix']
     results_df = pd.DataFrame(columns=df_columns)
@@ -92,7 +92,7 @@ def main():
 
     # Compare two best models (indexed from 0 - best model)
     print('Compare two best models:')
-    compare_two_models(0, 1, results_df)
+    # compare_two_models(0, 1, results_df)
 
     print('Best statistically significant model:')
     find_best_statistically_significant_model(results_df)
@@ -103,6 +103,11 @@ def main():
           f'number of features - {best_model_params["n_features"]}')
 
     show_best_score_confusion_matrix(best_model_params['mean_confusion_matrix'], diseases_names)
+
+    show_summarising_plots(number_of_features=number_of_features,
+                           results_df=results_df,
+                           metric_variants=metric_variants,
+                           n_neighbors_variants=n_neighbors_variants)
 
 
 if __name__ == '__main__':
