@@ -71,5 +71,8 @@ def paired_5x2_ttest(m1, m2):
         variances.append(variance)
 
     t = p_1_1 / (math.sqrt(1 / 5.0 * sum(variances)))
+    if math.isnan(t):
+        t = 0
     p_value = stats.t.sf(np.abs(t), 5) * 2.0
+
     return t, p_value

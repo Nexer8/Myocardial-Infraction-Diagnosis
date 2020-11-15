@@ -54,7 +54,7 @@ def main():
 
     df_columns = ['n_features', 'n_neighbors', 'metric', 'scores', 'mean_accuracy', 'mean_confusion_matrix']
     results_df = pd.DataFrame(columns=df_columns)
-
+    #number_of_features = 8
     number_of_features = ordered_features.shape[1] + 1  # or set to 8
 
     print('Training models. Please wait...')
@@ -92,7 +92,7 @@ def main():
 
     # Compare two best models (indexed from 0 - best model)
     print('Compare two best models:')
-    # compare_two_models(0, 1, results_df)
+    compare_two_models(1, 1, results_df)
 
     print('Best statistically significant model:')
     find_best_statistically_significant_model(results_df)
