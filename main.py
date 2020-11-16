@@ -82,17 +82,19 @@ def main():
                                                    (current_iteration_confusion_matrices / number_of_iterations)]
 
     results_df = results_df.sort_values('mean_accuracy')
+    j = 0
     print('Best mean models scoreboard:')
     for i, row in results_df.iterrows():
+        j = j + 1
         print(
-            f'Mean score for n_neighbors={row["n_neighbors"]}, metric={row["metric"]}, '
+            f'[{len(results_df) - j}] Mean score for n_neighbors={row["n_neighbors"]}, metric={row["metric"]}, '
             f'n_features={row["n_features"]}: {row["mean_accuracy"]}')
 
     # compare_every_model_paired(results_df)
 
     # Compare two best models (indexed from 0 - best model)
     print('Compare two best models:')
-    compare_two_models(1, 1, results_df)
+    compare_two_models(0, 1, results_df)
 
     print('Best statistically significant model:')
     find_best_statistically_significant_model(results_df)
