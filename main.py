@@ -94,7 +94,9 @@ def main():
 
     # Compare two best models (indexed from 0 - best model)
     print('Compare two best models:')
+
     compare_two_models(0, 1, results_df)
+
 
     print('Best statistically significant model:')
     find_best_statistically_significant_model(results_df)
