@@ -1,3 +1,4 @@
+import itertools
 import numpy as np
 import pandas as pd
 from sklearn.feature_selection import chi2
@@ -59,32 +60,31 @@ def main():
 
     print('Training models. Please wait...')
     for n_features in range(1, number_of_features):
-        for n_neighbors in n_neighbors_variants:
-            for metric in metric_variants:
-                knn = KNeighborsClassifier(n_neighbors=n_neighbors, metric=metric)
-                current_iteration_scores = []
-                current_iteration_confusion_matrices = np.zeros(shape=(5, 5))
-                number_of_iterations = 0
+        for n_neighbors, metric in itertools.product(n_neighbors_variants, metric_variants):
+            knn = KNeighborsClassifier(n_neighbors=n_neighbors, metric=metric)
+            current_iteration_scores = []
+            current_iteration_confusion_matrices = np.zeros(shape=(5, 5))
+            number_of_iterations = 0
 
-                for train, test in rskf.split(ordered_features[:, 0:n_features], classes):
-                    knn.fit(ordered_features[:, 0:n_features][train], classes[train])
-                    current_score = knn.score(ordered_features[:, 0:n_features][test], classes[test])
-                    current_iteration_scores.append(current_score)
+            for train, test in rskf.split(ordered_features[:, 0:n_features], classes):
+                knn.fit(ordered_features[:, 0:n_features][train], classes[train])
+                current_score = knn.score(ordered_features[:, 0:n_features][test], classes[test])
+                current_iteration_scores.append(current_score)
 
-                    y_pred = knn.predict(ordered_features[:, 0:n_features][test])
-                    current_confusion_matrix = confusion_matrix(classes[test], y_pred=y_pred)
-                    current_iteration_confusion_matrices += current_confusion_matrix
+                y_pred = knn.predict(ordered_features[:, 0:n_features][test])
+                current_confusion_matrix = confusion_matrix(classes[test], y_pred=y_pred)
+                current_iteration_confusion_matrices += current_confusion_matrix
 
-                    number_of_iterations += 1
+                number_of_iterations += 1
 
-                results_df.loc[len(results_df)] = [n_features, n_neighbors, metric, current_iteration_scores,
-                                                   np.array(current_iteration_scores).mean().round(3),
-                                                   (current_iteration_confusion_matrices / number_of_iterations)]
+            results_df.loc[len(results_df)] = [n_features, n_neighbors, metric, current_iteration_scores,
+                                               np.array(current_iteration_scores).mean().round(3),
+                                               (current_iteration_confusion_matrices / number_of_iterations)]
 
     results_df = results_df.sort_values('mean_accuracy')
     j = 0
     print('Best mean models scoreboard:')
-    for i, row in results_df.iterrows():
+    for _, row in results_df.iterrows():
         j = j + 1
         print(
             f'[{len(results_df) - j}] Mean score for n_neighbors={row["n_neighbors"]}, metric={row["metric"]}, '

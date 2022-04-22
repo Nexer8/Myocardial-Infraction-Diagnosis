@@ -85,13 +85,12 @@ def load_diseases_names() -> list:
         for line in file.readlines():
             if line.__contains__('DIAGNOSES'):
                 diagnoses_appeared = True
-            if diagnoses_appeared:
-                if re.search(r'^(\d+)\.', line):
-                    line = line.split(' ', 1)[1]
-                    line = line.strip()
-                    if line.__contains__('- '):
-                        line = '- '.join(line.split('- ')[:-1])
-                    diseases_names.append(line)
+            if diagnoses_appeared and re.search(r'^(\d+)\.', line):
+                line = line.split(' ', 1)[1]
+                line = line.strip()
+                if line.__contains__('- '):
+                    line = '- '.join(line.split('- ')[:-1])
+                diseases_names.append(line)
 
     return diseases_names
 
